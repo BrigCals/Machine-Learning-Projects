@@ -2,8 +2,8 @@ import streamlit as st
 import joblib
 
 # --- Load model and vectorizer ---
-model = joblib.load("spam_classifier_model.joblib")
-v = joblib.load("vectorizer.joblib")
+model = joblib.load("spam-mail-classifier/spam_classifier_model.joblib")
+v = joblib.load("spam-mail-classifier/vectorizer.joblib")
 
 # --- Page configuration ---
 st.set_page_config(page_title="Spam Mail Classifier", page_icon="📧", layout="centered")
