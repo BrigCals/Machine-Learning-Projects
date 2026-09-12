@@ -57,7 +57,6 @@ if "email_text" not in st.session_state:
 # SIDEBAR
 # ============================================================
 with st.sidebar:
-    # Notice how the HTML is flush to the left to prevent Markdown code block formatting
     st.markdown(
         """
 <div class="sidebar-brand">
@@ -69,14 +68,6 @@ with st.sidebar:
 </div>
         """,
         unsafe_allow_html=True
-    )
-
-    st.markdown("---")
-
-    theme = st.radio(
-        "Appearance",
-        ["🌙 Night Mode", "☀️ Day Mode"],
-        index=0
     )
 
     st.markdown("---")
@@ -127,12 +118,10 @@ with st.sidebar:
         unsafe_allow_html=True
     )
 
-
 # ============================================================
-# DYNAMIC CSS (NIGHT / DAY MODE)
+# CSS (SINGLE DARK THEME)
 # ============================================================
-if theme == "🌙 Night Mode":
-    custom_css = """
+custom_css = """
 <style>
     /* GLOBAL APP */
     .stApp {
@@ -140,6 +129,7 @@ if theme == "🌙 Night Mode":
                     radial-gradient(circle at 95% 5%, rgba(0, 153, 255, 0.25), transparent 38%),
                     linear-gradient(135deg, #080514 0%, #100a2b 48%, #071a38 100%);
         background-attachment: fixed;
+        color: #ffffff;
     }
     [data-testid="stHeader"] { background: transparent !important; }
 
@@ -193,13 +183,22 @@ if theme == "🌙 Night Mode":
     .email-input-status { padding: 4px 9px; border-radius: 999px; background: rgba(126,111,255,0.10); border: 1px solid rgba(126,111,255,0.20); color: #9185e8; font-size: 9px; font-weight: 800; letter-spacing: 0.8px; }
     .email-input-description { color: #81889e; font-size: 12px; margin-bottom: 10px; }
 
-    /* EMAIL TEXTAREA */
+    /* EMAIL TEXTAREA - FIXED FONT COLOR */
     div[data-testid="stTextArea"] { width: 100%; }
-    div[data-testid="stTextArea"] div[data-baseweb="textarea"] { background: linear-gradient(145deg, rgba(15,17,38,0.96), rgba(8,11,28,0.98)) !important; border: 1px solid rgba(255,255,255,0.14) !important; border-radius: 18px !important; box-shadow: inset 0 1px 0 rgba(255,255,255,0.04), 0 10px 30px rgba(0,0,0,0.20) !important; transition: all 0.25s ease !important; overflow: hidden !important; }
-    div[data-testid="stTextArea"] textarea { background: transparent !important; color: #f5f7ff !important; -webkit-text-fill-color: #f5f7ff !important; border: none !important; outline: none !important; box-shadow: none !important; min-height: 220px !important; padding: 18px !important; font-size: 15px !important; line-height: 1.65 !important; caret-color: #8b7cff !important; resize: vertical !important; }
-    div[data-testid="stTextArea"] textarea::placeholder { color: #747b91 !important; opacity: 1 !important; }
-    div[data-testid="stTextArea"] div[data-baseweb="textarea"]:hover { border-color: rgba(130,116,255,0.40) !important; }
-    div[data-testid="stTextArea"]:focus-within div[data-baseweb="textarea"] { border-color: rgba(126,111,255,0.90) !important; box-shadow: 0 0 0 3px rgba(108,86,255,0.12), 0 0 30px rgba(91,77,255,0.12), inset 0 1px 0 rgba(255,255,255,0.05) !important; background: linear-gradient(145deg, rgba(20,21,48,0.98), rgba(9,12,30,1)) !important; }
+    div[data-testid="stTextArea"] div[data-baseweb="textarea"] { 
+        background: rgba(15, 17, 38, 0.6) !important; 
+        border: 1px solid rgba(255,255,255,0.2) !important; 
+        border-radius: 12px !important; 
+    }
+    div[data-testid="stTextArea"] textarea { 
+        background: transparent !important; 
+        color: #ffffff !important; /* FIXED: explicitly set text color to white */
+        -webkit-text-fill-color: #ffffff !important; /* FIXED: for webkit browsers */
+        font-size: 16px !important;
+        padding: 15px !important;
+    }
+    div[data-testid="stTextArea"] textarea::placeholder { color: #8c93a8 !important; opacity: 1 !important; }
+    
     .character-count { text-align: right; color: #70778b; font-size: 11px; margin-top: 5px; margin-bottom: 10px; }
 
     /* BUTTONS */
@@ -234,100 +233,7 @@ if theme == "🌙 Night Mode":
         .subtitle { font-size: 13px; }
     }
 </style>
-    """
-else:
-    custom_css = """
-<style>
-    /* GLOBAL APP */
-    .stApp {
-        background: radial-gradient(circle at 5% 95%, rgba(124,84,255,0.10), transparent 38%),
-                    radial-gradient(circle at 95% 5%, rgba(0,135,255,0.10), transparent 38%),
-                    #edf2f8;
-        background-attachment: fixed;
-    }
-    [data-testid="stHeader"] { background: transparent !important; }
-
-    /* MAIN CONTAINER */
-    .block-container {
-        max-width: 920px; margin-top: 1.5rem; margin-bottom: 2rem; padding: 42px 42px 30px 42px !important;
-        border-radius: 28px; background: rgba(255,255,255,0.82); border: 1px solid rgba(255,255,255,0.95);
-        box-shadow: 0 25px 70px rgba(30,45,80,0.10); backdrop-filter: blur(25px);
-    }
-
-    /* SIDEBAR */
-    [data-testid="stSidebar"] { background: rgba(245,248,252,0.96) !important; border-right: 1px solid rgba(20,30,50,0.08); }
-    .sidebar-brand { display: flex; align-items: center; gap: 12px; }
-    .brand-icon { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #eeeaff, #e5f3ff); border: 1px solid rgba(60,80,120,0.10); font-size: 25px; }
-    .brand-title { font-size: 20px; font-weight: 800; color: #111827; }
-    .brand-subtitle { font-size: 12px; color: #6b7280; }
-    .side-section-title { color: #172033; font-size: 18px; font-weight: 800; margin-bottom: 18px; }
-    .side-step { display: flex; gap: 12px; margin-bottom: 18px; color: #172033; }
-    .side-step > span { width: 31px; height: 31px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border-radius: 10px; background: #f0edff; border: 1px solid #dfd8ff; color: #6555d8; font-size: 11px; font-weight: 800; }
-    .side-step small { color: #6b7280; line-height: 1.5; }
-    .model-info { padding: 15px; border-radius: 15px; background: rgba(255,255,255,0.70); border: 1px solid rgba(40,50,80,0.08); }
-    .model-info-title { color: #172033; font-weight: 700; margin-bottom: 4px; }
-    .model-info-text { color: #6b7280; font-size: 13px; margin-bottom: 9px; }
-    .model-status { color: #16814d; font-size: 12px; display: flex; align-items: center; gap: 6px; }
-    .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #27bd72; }
-
-    /* HEADER */
-    .security-badge { width: fit-content; margin: 0 auto 14px auto; padding: 6px 13px; border-radius: 999px; background: #f0edff; border: 1px solid #ddd5ff; color: #6656d7; font-size: 10px; font-weight: 800; letter-spacing: 1px; }
-    .main-title { text-align: center; font-size: clamp(36px, 5vw, 50px); line-height: 1.05; font-weight: 850; letter-spacing: -2px; color: #111827 !important; margin: 0; }
-    .subtitle { text-align: center; color: #667085 !important; font-size: 15px; margin-top: 12px; margin-bottom: 28px; }
-
-    /* SELECTBOX */
-    div[data-testid="stSelectbox"] label { color: #344054 !important; font-size: 12px !important; font-weight: 700 !important; }
-    div[data-baseweb="select"] > div { background: rgba(255,255,255,0.92) !important; border: 1px solid #d5dae4 !important; border-radius: 13px !important; }
-
-    /* EMAIL INPUT HEADER */
-    .email-input-header { display: flex; justify-content: space-between; align-items: center; margin-top: 16px; margin-bottom: 5px; }
-    .email-input-title { display: flex; align-items: center; gap: 8px; color: #1f2937; font-size: 15px; font-weight: 800; }
-    .email-icon { color: #6959df; font-size: 17px; }
-    .email-input-status { padding: 4px 9px; border-radius: 999px; background: #f0edff; border: 1px solid #ddd5ff; color: #6656d7; font-size: 9px; font-weight: 800; letter-spacing: 0.8px; }
-    .email-input-description { color: #7a8292; font-size: 12px; margin-bottom: 10px; }
-
-    /* EMAIL TEXTAREA */
-    div[data-testid="stTextArea"] { width: 100%; }
-    div[data-testid="stTextArea"] div[data-baseweb="textarea"] { background: linear-gradient(145deg, rgba(255,255,255,0.98), rgba(246,248,252,0.98)) !important; border: 1px solid #d5dbe5 !important; border-radius: 18px !important; box-shadow: 0 8px 25px rgba(30,50,90,0.06) !important; overflow: hidden !important; }
-    div[data-testid="stTextArea"] textarea { background: transparent !important; color: #172033 !important; -webkit-text-fill-color: #172033 !important; border: none !important; outline: none !important; box-shadow: none !important; min-height: 220px !important; padding: 18px !important; font-size: 15px !important; line-height: 1.65 !important; caret-color: #6959df !important; resize: vertical !important; }
-    div[data-testid="stTextArea"] textarea::placeholder { color: #98a0ad !important; opacity: 1 !important; }
-    div[data-testid="stTextArea"] div[data-baseweb="textarea"]:hover { border-color: #bcb4ee !important; }
-    div[data-testid="stTextArea"]:focus-within div[data-baseweb="textarea"] { border-color: #7567e8 !important; box-shadow: 0 0 0 3px rgba(117,103,232,0.10), 0 10px 25px rgba(40,50,90,0.08) !important; }
-    .character-count { text-align: right; color: #7b8492; font-size: 11px; margin-top: 5px; margin-bottom: 10px; }
-
-    /* BUTTONS */
-    .stButton > button { min-height: 49px !important; border-radius: 14px !important; font-weight: 800 !important; font-size: 14px !important; }
-    .stButton > button:hover { transform: translateY(-2px); }
-    div[data-testid="stButton"] button[kind="primary"] { background: linear-gradient(135deg, #6e5cf4, #4488ee) !important; color: white !important; border: none !important; box-shadow: 0 8px 22px rgba(82,100,230,0.25) !important; }
-
-    /* RESULT */
-    .result-card { padding: 23px; border-radius: 19px; margin-top: 22px; margin-bottom: 20px; text-align: center; }
-    .result-spam { background: #fff2f4; border: 1px solid #ffcbd3; }
-    .result-safe { background: #effbf4; border: 1px solid #c2efd5; }
-    .result-icon { font-size: 34px; margin-bottom: 5px; }
-    .result-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #7b8190; margin-bottom: 5px; }
-    .result-value { font-size: 30px; font-weight: 850; }
-    .spam-text { color: #d92d4d; }
-    .safe-text { color: #17864e; }
-
-    /* CONFIDENCE */
-    .confidence-title { font-size: 18px; font-weight: 800; color: #1f2937; margin-top: 25px; margin-bottom: 15px; }
-    .confidence-row { margin-bottom: 15px; }
-    .confidence-header { display: flex; justify-content: space-between; margin-bottom: 7px; font-size: 13px; font-weight: 700; color: #343b4a; }
-    .confidence-track { height: 9px; border-radius: 999px; background: #e6e9ef; overflow: hidden; }
-    .confidence-fill-spam { height: 100%; background: linear-gradient(90deg, #ff6078, #e83c59); border-radius: inherit; }
-    .confidence-fill-safe { height: 100%; background: linear-gradient(90deg, #45d98d, #22b873); border-radius: inherit; }
-
-    /* FOOTER & MOBILE */
-    .app-footer { text-align: center; color: #7d8492; font-size: 12px; margin-top: 24px; }
-    footer { visibility: hidden; }
-    @media (max-width: 700px) {
-        .block-container { padding: 28px 18px 22px 18px !important; margin-top: 0.5rem; border-radius: 20px; }
-        .main-title { font-size: 36px; }
-        .subtitle { font-size: 13px; }
-    }
-</style>
-    """
+"""
 
 st.markdown(custom_css, unsafe_allow_html=True)
 
