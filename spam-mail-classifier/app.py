@@ -28,55 +28,14 @@ def load_models():
 # Load the models
 model, v = load_models()
 
-# --- Custom CSS for styling ---
-st.markdown("""
-    <style>
-        .main-title {
-            font-size: 40px;
-            font-weight: 800;
-            color: #1E88E5; /* Switched to a cleaner blue */
-            text-align: center;
-            margin-bottom: 5px;
-        }
-        .subtitle {
-            font-size: 18px;
-            color: #555555;
-            text-align: center;
-            margin-bottom: 25px;
-        }
-        .result-box {
-            font-size: 24px;
-            font-weight: bold;
-            padding: 20px;
-            border-radius: 12px;
-            text-align: center;
-            margin-top: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .spam {
-            background-color: #ffebee;
-            color: #d32f2f;
-            border: 2px solid #ef9a9a;
-        }
-        .not-spam {
-            background-color: #e8f5e9;
-            color: #2e7d32;
-            border: 2px solid #a5d6a7;
-        }
-        /* Hide Streamlit default footer */
-        footer {visibility: hidden;}
-        /* Make text area stand out a bit more */
-        .stTextArea textarea {
-            border-radius: 8px;
-            border: 1px solid #cccccc;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-# --- Sidebar ---
+# --- Sidebar for Theme & Info ---
 with st.sidebar:
-    st.image("https://img.icons8.com/color/96/000000/spam.png", width=60) # Add a little icon
+    st.image("https://img.icons8.com/color/96/000000/spam.png", width=60)
+    
+    # Theme Toggle
+    theme = st.radio("🌓 Appearance", ["Night Mode (Neon Glass)", "Day Mode (Frosted Glass)"])
+    st.markdown("---")
+    
     st.title("ℹ️ How to Use")
     st.markdown("""
     1. **Paste** the text of a suspicious email into the main text box.
@@ -87,6 +46,207 @@ with st.sidebar:
     **About:**
     This app uses a Machine Learning model (Naive Bayes) to analyze text patterns common in spam emails.
     """)
+
+# --- Dynamic CSS based on Theme ---
+if theme == "Night Mode (Neon Glass)":
+    custom_css = """
+    <style>
+        /* Main Dark App Background */
+        .stApp {
+            background-color: #0b061f;
+            background-image: 
+                radial-gradient(circle at 10% 90%, rgba(138, 43, 226, 0.4) 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, rgba(0, 119, 255, 0.3) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+        [data-testid="stHeader"] { background: transparent !important; }
+        
+        /* Glass Sidebar */
+        [data-testid="stSidebar"] {
+            background-color: rgba(11, 6, 31, 0.6) !important;
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Glassmorphism Main Container */
+        .block-container {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 20px;
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            border-left: 1px solid rgba(255, 255, 255, 0.3);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 3rem 2rem !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+            margin-top: 2rem;
+        }
+        
+        /* Typography overrides */
+        h1, h2, h3, p, label, .stMarkdown p, li { color: #ffffff !important; }
+        .main-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: #ffffff;
+            text-align: center;
+            margin-bottom: 5px;
+            text-shadow: 0 0 15px rgba(255,255,255,0.3);
+        }
+        .subtitle {
+            font-size: 18px;
+            color: #b0b0b0;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        /* Glowing Pill Button */
+        .stButton > button {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border-radius: 30px !important;
+            font-weight: bold !important;
+            border: none !important;
+            box-shadow: 0 0 15px rgba(255,255,255,0.6) !important;
+            transition: all 0.3s ease !important;
+        }
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0 25px rgba(255,255,255,0.9) !important;
+        }
+        
+        /* Dark Input Box */
+        .stTextArea textarea {
+            background-color: rgba(0, 0, 0, 0.4) !important;
+            color: white !important;
+            border: 1px solid rgba(255,255,255,0.2) !important;
+            border-radius: 12px !important;
+        }
+        .stTextArea textarea::placeholder { color: #888 !important; }
+        
+        /* Result styling */
+        .result-box {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+        .spam {
+            background: rgba(255, 50, 50, 0.15);
+            color: #ff9999 !important;
+            border: 1px solid rgba(255, 50, 50, 0.4);
+            box-shadow: 0 0 20px rgba(255, 50, 50, 0.2);
+        }
+        .not-spam {
+            background: rgba(50, 255, 100, 0.1);
+            color: #99ffbb !important;
+            border: 1px solid rgba(50, 255, 100, 0.4);
+            box-shadow: 0 0 20px rgba(50, 255, 100, 0.15);
+        }
+        footer {visibility: hidden;}
+    </style>
+    """
+else:
+    custom_css = """
+    <style>
+        /* Main Light App Background */
+        .stApp {
+            background-color: #f0f4f8;
+            background-image: 
+                radial-gradient(circle at 10% 90%, rgba(138, 43, 226, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, rgba(0, 119, 255, 0.1) 0%, transparent 40%);
+            background-attachment: fixed;
+        }
+        [data-testid="stHeader"] { background: transparent !important; }
+        
+        /* Glass Sidebar */
+        [data-testid="stSidebar"] {
+            background-color: rgba(255, 255, 255, 0.5) !important;
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Light Frosted Container */
+        .block-container {
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 1);
+            padding: 3rem 2rem !important;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.05);
+            margin-top: 2rem;
+        }
+        
+        /* Typography overrides */
+        h1, h2, h3, p, label, .stMarkdown p, li { color: #111111 !important; }
+        .main-title {
+            font-size: 42px;
+            font-weight: 800;
+            color: #111111;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .subtitle {
+            font-size: 18px;
+            color: #555555;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        
+        /* Dark Pill Button */
+        .stButton > button {
+            background-color: #1a1a1a !important;
+            color: #ffffff !important;
+            border-radius: 30px !important;
+            font-weight: bold !important;
+            border: none !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15) !important;
+            transition: all 0.3s ease !important;
+        }
+        .stButton > button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.25) !important;
+        }
+        
+        /* Light Input Box */
+        .stTextArea textarea {
+            background-color: rgba(255, 255, 255, 0.8) !important;
+            color: #111 !important;
+            border: 1px solid rgba(0,0,0,0.1) !important;
+            border-radius: 12px !important;
+        }
+        
+        /* Result styling */
+        .result-box {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        .spam {
+            background: rgba(255, 50, 50, 0.1);
+            color: #d32f2f !important;
+            border: 1px solid rgba(255, 50, 50, 0.3);
+        }
+        .not-spam {
+            background: rgba(50, 255, 100, 0.15);
+            color: #2e7d32 !important;
+            border: 1px solid rgba(50, 255, 100, 0.4);
+        }
+        footer {visibility: hidden;}
+    </style>
+    """
+
+# Apply the selected CSS
+st.markdown(custom_css, unsafe_allow_html=True)
 
 # --- Main UI ---
 st.markdown("<div class='main-title'>Spam Mail Classifier 📧</div>", unsafe_allow_html=True)
