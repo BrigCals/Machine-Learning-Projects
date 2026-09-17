@@ -14,7 +14,7 @@ st.set_page_config(
 )
 
 # ============================================================
-# CUSTOM CSS (Dark Glowing Green Theme - Fixed Inputs)
+# CUSTOM CSS (Dark Glowing Green Theme)
 # ============================================================
 st.markdown(
     """
@@ -117,7 +117,7 @@ st.markdown(
     }
 
     /* BUTTONS - GREEN GLOWING GRADIENT */
-    .stButton > button { 
+    div[data-testid="stFormSubmitButton"] button { 
         min-height: 52px !important; 
         border-radius: 14px !important; 
         font-weight: 800 !important; 
@@ -125,14 +125,12 @@ st.markdown(
         transition: transform 0.2s ease, box-shadow 0.2s ease !important; 
         width: 100% !important;
         margin-top: 15px;
-    }
-    div[data-testid="stButton"] button[kind="primary"] { 
         background: linear-gradient(135deg, #2ed573, #0ba360) !important; 
         color: #000000 !important; 
         border: none !important; 
         box-shadow: 0 0 25px rgba(46, 213, 115, 0.5) !important; 
     }
-    div[data-testid="stButton"] button[kind="primary"]:hover { 
+    div[data-testid="stFormSubmitButton"] button:hover { 
         transform: translateY(-2px); 
         box-shadow: 0 0 35px rgba(46, 213, 115, 0.7) !important; 
     }
@@ -290,7 +288,7 @@ with st.form("patient_data_form"):
         diabPedFun = st.number_input("Pedigree Function (DPF)", min_value=0.0, max_value=3.0, value=0.5, format="%.3f")
 
     # SUBMIT BUTTON
-    submit_button = st.form_submit_button(label="🔍 Generate Risk Assessment", use_container_width=True, type="primary")
+    submit_button = st.form_submit_button(label="🔍 Generate Risk Assessment", use_container_width=True)
 
 # ============================================================
 # PREDICTION & RESULTS
