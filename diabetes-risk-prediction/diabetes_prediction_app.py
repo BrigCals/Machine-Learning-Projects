@@ -309,20 +309,20 @@ with st.form("patient_data_form"):
         st.markdown('<div class="section-title"><span class="section-icon">👤</span> Profile</div>', unsafe_allow_html=True)
         age = st.number_input("Age (Years)", min_value=1, max_value=120, value=30, step=1)
         pregnancies = st.number_input("Pregnancies", min_value=0, max_value=20, value=0, step=1)
-        bmi = st.number_input("BMI", min_value=0.0, max_value=70.0, value=25.0, format="%.1f")
+        bmi = st.number_input("BMI", min_value=0.0, max_value=70.0, value=25.0, format="%.1f", step=0.1)
 
     # COLUMN 2: Blood Tests
     with col2:
         st.markdown('<div class="section-title"><span class="section-icon">🩸</span> Vitals</div>', unsafe_allow_html=True)
-        glucose = st.number_input("Glucose (mg/dL)", min_value=0.0, max_value=300.0, value=120.0, format="%.1f")
-        insulin = st.number_input("Insulin (μU/ml)", min_value=0.0, max_value=900.0, value=80.0, format="%.1f")
-        bloodpressure = st.number_input("Blood Pressure (mmHg)", min_value=0.0, max_value=200.0, value=70.0, format="%.1f")
+        glucose = st.number_input("Glucose (mg/dL)", min_value=0.0, max_value=300.0, value=120.0, format="%.1f", step=0.1)
+        insulin = st.number_input("Insulin (μU/ml)", min_value=0.0, max_value=900.0, value=80.0, format="%.1f", step=0.1)
+        bloodpressure = st.number_input("Blood Pressure (mmHg)", min_value=0.0, max_value=200.0, value=70.0, format="%.1f", step=0.1)
 
     # COLUMN 3: Other Metrics
     with col3:
         st.markdown('<div class="section-title"><span class="section-icon">🧬</span> Specifics</div>', unsafe_allow_html=True)
-        skinthickness = st.number_input("Skin Thickness (mm)", min_value=0.0, max_value=100.0, value=20.0, format="%.1f")
-        diabPedFun = st.number_input("Pedigree Function (DPF)", min_value=0.0, max_value=3.0, value=0.5, format="%.3f")
+        skinthickness = st.number_input("Skin Thickness (mm)", min_value=0.0, max_value=100.0, value=20.0, format="%.1f", step=0.1)
+        diabPedFun = st.number_input("Pedigree Function (DPF)", min_value=0.0, max_value=3.0, value=0.5, format="%.3f", step=0.001)
 
     # SUBMIT BUTTON
     submit_button = st.form_submit_button(label="🔍 Generate Risk Assessment", use_container_width=True)
