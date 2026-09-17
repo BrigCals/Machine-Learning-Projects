@@ -1,12 +1,12 @@
+import os
 import streamlit as st
 import pandas as pd
 import joblib
-import os
 
 
-# ============================================================
+# --------------------------------------------------
 # PAGE CONFIGURATION
-# ============================================================
+# --------------------------------------------------
 
 st.set_page_config(
     page_title="Diabetes Risk Predictor",
@@ -16,323 +16,246 @@ st.set_page_config(
 )
 
 
-# ============================================================
-# LOAD TRAINED MODEL
-# Automatically searches the repository for the model file
-# ============================================================
+# --------------------------------------------------
+# LOAD MODEL
+# --------------------------------------------------
 
 @st.cache_resource
 def load_model():
 
-    # Get the directory where app.py is located
+    # Get the directory containing this Python file
     base_dir = os.path.dirname(os.path.abspath(__file__))
 
-    # Search through all folders and subfolders
-    for root, dirs, files in os.walk(base_dir):
+    # Build the model path
+    model_path = os.path.join(
+        base_dir,
+        "diabetes_prediction_model.joblib"
+    )
 
-        if "diabetes_prediction_model.joblib" in files:
+    # Check whether the model exists
+    if not os.path.exists(model_path):
+        st.error("Model file not found.")
+        st.write("Looking for:")
+        st.code(model_path)
+        st.stop()
 
-            model_path = os.path.join(
-                root,
-                "diabetes_prediction_model.joblib"
-            )
+    # Load model
+    try:
+        model = joblib.load(model_path)
+        return model
 
-            return joblib.load(model_path)
+    except ModuleNotFoundError as e:
+        st.error("A required Python module is missing.")
+        st.code(str(e))
 
-    # Model was not found
-    return None
+        st.info(
+            "Check your requirements.txt and add the missing "
+            "machine-learning package."
+        )
+
+        st.stop()
+
+    except Exception as e:
+        st.error("Error loading the model.")
+        st.code(str(e))
+        st.stop()
 
 
 model = load_model()
 
 
-# ============================================================
-# HEADER AND DESCRIPTION
-# ============================================================
+# --------------------------------------------------
+# TITLE
+# --------------------------------------------------
 
-st.markdown(
-    """
-    <div style='text-align: center;
-                padding: 20px;
-                border-bottom: 2px solid #4CAF50;
-                margin-bottom: 30px;'>
+st.title("🩺 Diabetes Risk Predictor")
 
-        <h1 style='color: #2E7D32;'>
-            🩺 Diabetes Risk Assessment Tool
-        </h1>
-
-        <p style='font-size: 1.1em; color: #555;'>
-            Enter your health metrics below to predict the likelihood
-            of diabetes. This tool uses a machine learning model
-            based on clinical data.
-        </p>
-
-    </div>
-    """,
-    unsafe_allow_html=True
+st.write(
+    "Enter the patient's information below to predict "
+    "the diabetes outcome."
 )
 
+st.divider()
 
-# ============================================================
-# CHECK IF MODEL EXISTS
-# ============================================================
 
-if model is None:
+# --------------------------------------------------
+# INPUTS
+# --------------------------------------------------
 
-    st.error(
-        "⚠️ Model file not found! "
-        "Please ensure 'diabetes_prediction_model.joblib' "
-        "is somewhere in the repository."
+st.subheader("Patient Information")
+
+col1, col2 = st.columns(2)
+
+
+with col1:
+
+    pregnancies = st.number_input(
+        "Pregnancies",
+        min_value=0,
+        max_value=20,
+        value=0,
+        step=1
     )
 
-    st.stop()
+    glucose = st.number_input(
+        "Glucose Level (mg/dL)",
+        min_value=0.0,
+        max_value=300.0,
+        value=120.0,
+        step=1.0
+    )
+
+    bloodpressure = st.number_input(
+        "Blood Pressure (mmHg)",
+        min_value=0.0,
+        max_value=200.0,
+        value=70.0,
+        step=1.0
+    )
+
+    skinthickness = st.number_input(
+        "Skin Thickness (mm)",
+        min_value=0.0,
+        max_value=100.0,
+        value=20.0,
+        step=1.0
+    )
 
 
-# ============================================================
-# USER INPUT SECTION
-# ============================================================
+with col2:
 
-with st.container():
+    insulin = st.number_input(
+        "Insulin (mu U/ml)",
+        min_value=0.0,
+        max_value=1000.0,
+        value=80.0,
+        step=1.0
+    )
 
-    st.markdown("### 📋 Patient Health Data")
+    bmi = st.number_input(
+        "BMI",
+        min_value=0.0,
+        max_value=70.0,
+        value=25.0,
+        step=0.1
+    )
 
-    # Form prevents the app from predicting
-    # every time an input changes
-    with st.form("patient_data_form"):
+    diabetespedigree = st.number_input(
+        "Diabetes Pedigree Function",
+        min_value=0.0,
+        max_value=3.0,
+        value=0.5,
+        step=0.01
+    )
 
-        col1, col2, col3 = st.columns(3)
+    age = st.number_input(
+        "Age",
+        min_value=1,
+        max_value=120,
+        value=30,
+        step=1
+    )
 
 
-        # ----------------------------------------------------
-        # COLUMN 1
-        # ----------------------------------------------------
+st.divider()
 
-        with col1:
 
-            st.markdown("**Personal Info**")
+# --------------------------------------------------
+# PREDICTION
+# --------------------------------------------------
 
-            age = st.number_input(
-                "Age (Years)",
-                min_value=1,
-                max_value=120,
-                value=30,
-                step=1,
-                help="Age in years."
+if st.button(
+    "🔍 Predict Diabetes Risk",
+    use_container_width=True
+):
+
+    # Create input DataFrame
+    input_data = pd.DataFrame(
+        [[
+            pregnancies,
+            glucose,
+            bloodpressure,
+            skinthickness,
+            insulin,
+            bmi,
+            diabetespedigree,
+            age
+        ]],
+        columns=[
+            "Pregnancies",
+            "Glucose",
+            "BloodPressure",
+            "SkinThickness",
+            "Insulin",
+            "BMI",
+            "DiabetesPedigreeFunction",
+            "Age"
+        ]
+    )
+
+    try:
+
+        # Make prediction
+        prediction = model.predict(input_data)[0]
+
+        # --------------------------------------------------
+        # RESULT
+        # --------------------------------------------------
+
+        st.subheader("Prediction Result")
+
+        if prediction == 1:
+
+            st.error(
+                "⚠️ The model predicts a positive diabetes outcome."
             )
 
-            pregnancies = st.number_input(
-                "Pregnancies",
-                min_value=0,
-                max_value=20,
-                value=0,
-                step=1,
-                help="Number of times pregnant."
-            )
+        else:
 
-            bmi = st.number_input(
-                "BMI",
-                min_value=0.0,
-                max_value=70.0,
-                value=25.0,
-                format="%.1f",
-                help="Body mass index (weight in kg/(height in m)^2)."
+            st.success(
+                "✅ The model predicts a negative diabetes outcome."
             )
 
 
-        # ----------------------------------------------------
-        # COLUMN 2
-        # ----------------------------------------------------
+        # --------------------------------------------------
+        # PROBABILITY
+        # --------------------------------------------------
 
-        with col2:
+        if hasattr(model, "predict_proba"):
 
-            st.markdown("**Blood Tests**")
+            probabilities = model.predict_proba(input_data)[0]
 
-            glucose = st.number_input(
-                "Glucose (mg/dL)",
-                min_value=0.0,
-                max_value=300.0,
-                value=120.0,
-                format="%.1f",
-                help="Plasma glucose concentration from a 2-hour oral glucose tolerance test."
-            )
+            non_diabetes_probability = probabilities[0] * 100
+            diabetes_probability = probabilities[1] * 100
 
-            insulin = st.number_input(
-                "Insulin (μU/ml)",
-                min_value=0.0,
-                max_value=900.0,
-                value=80.0,
-                format="%.1f",
-                help="2-hour serum insulin."
-            )
+            col1, col2 = st.columns(2)
 
+            with col1:
+                st.metric(
+                    "Non-Diabetes Probability",
+                    f"{non_diabetes_probability:.2f}%"
+                )
 
-        # ----------------------------------------------------
-        # COLUMN 3
-        # ----------------------------------------------------
-
-        with col3:
-
-            st.markdown("**Other Metrics**")
-
-            bloodpressure = st.number_input(
-                "Blood Pressure (mmHg)",
-                min_value=0.0,
-                max_value=200.0,
-                value=70.0,
-                format="%.1f",
-                help="Diastolic blood pressure."
-            )
-
-            skinthickness = st.number_input(
-                "Skin Thickness (mm)",
-                min_value=0.0,
-                max_value=100.0,
-                value=20.0,
-                format="%.1f",
-                help="Triceps skin fold thickness."
-            )
-
-            diabPedFun = st.number_input(
-                "Diabetes Pedigree",
-                min_value=0.0,
-                max_value=3.0,
-                value=0.5,
-                format="%.3f",
-                help="Diabetes pedigree function (genetic risk score)."
-            )
+            with col2:
+                st.metric(
+                    "Diabetes Probability",
+                    f"{diabetes_probability:.2f}%"
+                )
 
 
-        # ----------------------------------------------------
-        # SUBMIT BUTTON
-        # ----------------------------------------------------
+        # --------------------------------------------------
+        # DISPLAY INPUT
+        # --------------------------------------------------
 
-        st.markdown("<br>", unsafe_allow_html=True)
+        st.subheader("Input Data")
 
-        submit_button = st.form_submit_button(
-            label="🔍 Analyze Risk",
+        st.dataframe(
+            input_data,
             use_container_width=True
         )
 
 
-# ============================================================
-# PREDICTION
-# ============================================================
+    except Exception as e:
 
-if submit_button:
-
-    # --------------------------------------------------------
-    # CREATE INPUT DATAFRAME
-    # --------------------------------------------------------
-
-    input_data = pd.DataFrame({
-
-        "Pregnancies": [pregnancies],
-
-        "Glucose": [glucose],
-
-        "BloodPressure": [bloodpressure],
-
-        "SkinThickness": [skinthickness],
-
-        "Insulin": [insulin],
-
-        "BMI": [bmi],
-
-        "DiabetesPedigreeFunction": [diabPedFun],
-
-        "Age": [age]
-    })
-
-
-    # --------------------------------------------------------
-    # PREDICTION
-    # --------------------------------------------------------
-
-    with st.spinner("Analyzing patient data..."):
-
-        try:
-
-            prediction = model.predict(input_data)
-
-
-            # ------------------------------------------------
-            # RESULT
-            # ------------------------------------------------
-
-            st.markdown("---")
-
-            st.markdown("### 📊 Assessment Result")
-
-
-            # ------------------------------------------------
-            # DIABETES PREDICTED
-            # ------------------------------------------------
-
-            if prediction[0] == 1:
-
-                st.error(
-                    "#### 🔴 High Risk: Diabetic Profile Detected"
-                )
-
-                st.info(
-                    "The model indicates a higher predicted likelihood "
-                    "of diabetes based on the provided metrics. "
-                    "**Please consult with a healthcare professional "
-                    "for a formal diagnosis and advice.**"
-                )
-
-
-            # ------------------------------------------------
-            # NO DIABETES PREDICTED
-            # ------------------------------------------------
-
-            else:
-
-                st.success(
-                    "#### 🟢 Low Risk: Non-Diabetic Profile Detected"
-                )
-
-                st.info(
-                    "The model indicates a lower predicted likelihood "
-                    "of diabetes based on the provided metrics. "
-                    "This prediction should not be considered a "
-                    "medical diagnosis."
-                )
-
-
-        # ----------------------------------------------------
-        # ERROR HANDLING
-        # ----------------------------------------------------
-
-        except Exception as e:
-
-            st.error(
-                f"An error occurred during prediction: {e}"
-            )
-
-            st.write(
-                "Please check the input data format and "
-                "model compatibility."
-            )
-
-
-# ============================================================
-# FOOTER / DISCLAIMER
-# ============================================================
-
-st.markdown("---")
-
-st.markdown(
-    """
-    <p style='text-align: center;
-              font-size: 0.8em;
-              color: gray;'>
-
-        Disclaimer: This application is for educational purposes
-        only and should not be used as a substitute for professional
-        medical advice, diagnosis, or treatment.
-
-    </p>
-    """,
-    unsafe_allow_html=True
-)
+        st.error("Prediction error.")
+        st.code(str(e))
