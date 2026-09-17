@@ -58,9 +58,6 @@ def load_model():
         )
 
 
-model, model_error = load_model()
-
-
 # ============================================================
 # CUSTOM CSS
 # ============================================================
@@ -131,28 +128,6 @@ st.markdown(
 
 
 # ============================================================
-# MODEL ERROR
-# ============================================================
-
-if model is None:
-
-    st.error("⚠️ The trained model could not be loaded.")
-
-    st.code(
-        model_error,
-        language="text"
-    )
-
-    st.warning(
-        "Please make sure that the model file exists and that "
-        "the Python/scikit-learn versions used during deployment "
-        "are compatible with the environment used to train the model."
-    )
-
-    st.stop()
-
-
-# ============================================================
 # SIDEBAR
 # ============================================================
 
@@ -201,14 +176,15 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+
 with st.form("patient_data_form"):
 
     col1, col2, col3 = st.columns(3)
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # COLUMN 1
-    # --------------------------------------------------------
+    # ========================================================
 
     with col1:
 
@@ -242,9 +218,9 @@ with st.form("patient_data_form"):
         )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # COLUMN 2
-    # --------------------------------------------------------
+    # ========================================================
 
     with col2:
 
@@ -272,9 +248,9 @@ with st.form("patient_data_form"):
         )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # COLUMN 3
-    # --------------------------------------------------------
+    # ========================================================
 
     with col3:
 
@@ -308,9 +284,9 @@ with st.form("patient_data_form"):
         )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # SUBMIT
-    # --------------------------------------------------------
+    # ========================================================
 
     st.markdown("")
 
@@ -326,9 +302,9 @@ with st.form("patient_data_form"):
 
 if submit_button:
 
-    # --------------------------------------------------------
+    # ========================================================
     # CREATE INPUT DATAFRAME
-    # --------------------------------------------------------
+    # ========================================================
 
     input_data = pd.DataFrame(
         {
@@ -344,9 +320,9 @@ if submit_button:
     )
 
 
-    # --------------------------------------------------------
+    # ========================================================
     # DISPLAY INPUT DATA
-    # --------------------------------------------------------
+    # ========================================================
 
     st.markdown("---")
 
@@ -355,32 +331,68 @@ if submit_button:
         unsafe_allow_html=True
     )
 
-    display_data = input_data.copy()
-
     st.dataframe(
-        display_data,
+        input_data,
         use_container_width=True,
         hide_index=True
     )
 
 
-    # --------------------------------------------------------
+    # ========================================================
+    # LOAD MODEL
+    # ========================================================
+
+    with st.spinner("Loading trained model..."):
+
+        model, model_error = load_model()
+
+
+    # ========================================================
+    # MODEL LOADING ERROR
+    # ========================================================
+
+    if model is None:
+
+        st.error("⚠️ The trained model could not be loaded.")
+
+        st.code(
+            model_error,
+            language="text"
+        )
+
+        st.warning(
+            """
+            Please verify that:
+
+            1. The model file exists in the same folder as this app.
+            2. The model was saved correctly.
+            3. The scikit-learn version used to load the model is
+               compatible with the version used during training.
+            """
+        )
+
+        st.stop()
+
+
+    # ========================================================
     # MAKE PREDICTION
-    # --------------------------------------------------------
+    # ========================================================
 
     with st.spinner("Analyzing patient data..."):
 
         try:
 
-            # Make prediction
+            # ------------------------------------------------
+            # MAKE PREDICTION
+            # ------------------------------------------------
+
             prediction = model.predict(input_data)
 
-            # Get first prediction
             predicted_class = int(prediction[0])
 
 
             # ====================================================
-            # RESULT
+            # ASSESSMENT RESULT
             # ====================================================
 
             st.markdown("---")
@@ -391,9 +403,9 @@ if submit_button:
             )
 
 
-            # ------------------------------------------------
+            # ====================================================
             # CLASS 1
-            # ------------------------------------------------
+            # ====================================================
 
             if predicted_class == 1:
 
@@ -416,9 +428,9 @@ if submit_button:
                 )
 
 
-            # ------------------------------------------------
+            # ====================================================
             # CLASS 0
-            # ------------------------------------------------
+            # ====================================================
 
             elif predicted_class == 0:
 
@@ -441,15 +453,17 @@ if submit_button:
                 )
 
 
-            # ------------------------------------------------
+            # ====================================================
             # UNEXPECTED CLASS
-            # ------------------------------------------------
+            # ====================================================
 
             else:
 
                 st.warning(
-                    f"⚠️ The model returned an unexpected "
-                    f"classification value: {predicted_class}"
+                    f"""
+                    ⚠️ The model returned an unexpected
+                    classification value: {predicted_class}
+                    """
                 )
 
 
@@ -457,27 +471,32 @@ if submit_button:
             # OPTIONAL PROBABILITY
             # ====================================================
 
-            # Only display this if the trained model supports
-            # predict_proba().
-            #
-            # IMPORTANT:
-            # This is a model-estimated probability, NOT a
-            # medical probability or diagnostic certainty.
-
             if hasattr(model, "predict_proba"):
 
                 try:
 
-                    probabilities = model.predict_proba(input_data)[0]
+                    probabilities = model.predict_proba(
+                        input_data
+                    )[0]
 
                     st.markdown("### 📈 Model Output")
 
                     if len(probabilities) >= 2:
 
-                        non_diabetic_probability = probabilities[0] * 100
-                        diabetic_probability = probabilities[1] * 100
+                        non_diabetic_probability = (
+                            probabilities[0] * 100
+                        )
+
+                        diabetic_probability = (
+                            probabilities[1] * 100
+                        )
 
                         prob_col1, prob_col2 = st.columns(2)
+
+
+                        # ----------------------------------------
+                        # NON-DIABETIC PROBABILITY
+                        # ----------------------------------------
 
                         with prob_col1:
 
@@ -486,6 +505,11 @@ if submit_button:
                                 f"{non_diabetic_probability:.1f}%"
                             )
 
+
+                        # ----------------------------------------
+                        # DIABETIC PROBABILITY
+                        # ----------------------------------------
+
                         with prob_col2:
 
                             st.metric(
@@ -493,16 +517,25 @@ if submit_button:
                                 f"{diabetic_probability:.1f}%"
                             )
 
+
                         st.caption(
-                            "These percentages represent the model's "
-                            "estimated class probabilities and should "
-                            "not be interpreted as diagnostic certainty."
+                            """
+                            These percentages represent the
+                            model's estimated class probabilities
+                            and should not be interpreted as
+                            diagnostic certainty.
+                            """
                         )
 
-                except Exception:
-                    # If probability calculation fails, simply
-                    # continue showing the classification result.
-                    pass
+
+                except Exception as probability_error:
+
+                    # Probability calculation is optional.
+                    # The classification result is still displayed.
+
+                    st.caption(
+                        "Model probabilities are unavailable."
+                    )
 
 
         # ========================================================
@@ -538,6 +571,7 @@ st.markdown("---")
 st.markdown(
     """
     <div class="footer">
+
         <p>
             <strong>Disclaimer:</strong>
             This application is intended for educational and
@@ -549,6 +583,7 @@ st.markdown(
             The machine learning output should not be interpreted
             as a definitive medical diagnosis.
         </p>
+
     </div>
     """,
     unsafe_allow_html=True
