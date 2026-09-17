@@ -5,7 +5,7 @@ import joblib
 # -----------------------------
 # Load trained model
 # -----------------------------
-model = joblib.load("diabetes_prediction_model.joblib")
+model = joblib.load("diabetes-risk-prediction/diabetes_prediction_model.joblib")
 
 
 # -----------------------------
