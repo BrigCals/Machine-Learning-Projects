@@ -23,41 +23,42 @@ st.set_page_config(
 @st.cache_resource
 def load_model():
 
-    # Get the directory containing this Python file
-    base_dir = os.path.dirname(os.path.abspath(__file__))
+    # Get the folder where this Python file is located
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-    # Build the model path
+    # Path to the saved model
     model_path = os.path.join(
-        base_dir,
-        "diabetes_prediction_model.joblib"
+        BASE_DIR,
+        "diabetes_model.joblib"
     )
 
-    # Check whether the model exists
+    # Check if the model exists
     if not os.path.exists(model_path):
-        st.error("Model file not found.")
-        st.write("Looking for:")
-        st.code(model_path)
+        st.error(
+            f"Model file not found.\n\n"
+            f"Expected location:\n{model_path}"
+        )
         st.stop()
 
-    # Load model
+    # Load the trained model
     try:
         model = joblib.load(model_path)
         return model
 
     except ModuleNotFoundError as e:
-        st.error("A required Python module is missing.")
-        st.code(str(e))
-
-        st.info(
-            "Check your requirements.txt and add the missing "
-            "machine-learning package."
+        st.error(
+            f"Missing Python module required by the saved model: {e}"
         )
-
+        st.info(
+            "Add the missing package to requirements.txt "
+            "and redeploy the app."
+        )
         st.stop()
 
     except Exception as e:
-        st.error("Error loading the model.")
-        st.code(str(e))
+        st.error(
+            f"Unable to load the model:\n\n{e}"
+        )
         st.stop()
 
 
@@ -79,7 +80,7 @@ st.divider()
 
 
 # --------------------------------------------------
-# INPUTS
+# INPUT SECTION
 # --------------------------------------------------
 
 st.subheader("Patient Information")
@@ -111,7 +112,11 @@ with col1:
         max_value=200.0,
         value=70.0,
         step=1.0
+
     )
+
+
+with col2:
 
     skinthickness = st.number_input(
         "Skin Thickness (mm)",
@@ -120,9 +125,6 @@ with col1:
         value=20.0,
         step=1.0
     )
-
-
-with col2:
 
     insulin = st.number_input(
         "Insulin (mu U/ml)",
@@ -140,6 +142,12 @@ with col2:
         step=0.1
     )
 
+
+col3, col4 = st.columns(2)
+
+
+with col3:
+
     diabetespedigree = st.number_input(
         "Diabetes Pedigree Function",
         min_value=0.0,
@@ -147,6 +155,9 @@ with col2:
         value=0.5,
         step=0.01
     )
+
+
+with col4:
 
     age = st.number_input(
         "Age",
@@ -161,7 +172,7 @@ st.divider()
 
 
 # --------------------------------------------------
-# PREDICTION
+# PREDICTION BUTTON
 # --------------------------------------------------
 
 if st.button(
@@ -169,7 +180,8 @@ if st.button(
     use_container_width=True
 ):
 
-    # Create input DataFrame
+    # Create dataframe using the SAME feature order
+    # used during model training
     input_data = pd.DataFrame(
         [[
             pregnancies,
@@ -193,16 +205,22 @@ if st.button(
         ]
     )
 
+
+    # --------------------------------------------------
+    # PREDICTION
+    # --------------------------------------------------
+
     try:
 
-        # Make prediction
         prediction = model.predict(input_data)[0]
 
+
         # --------------------------------------------------
-        # RESULT
+        # DISPLAY RESULT
         # --------------------------------------------------
 
         st.subheader("Prediction Result")
+
 
         if prediction == 1:
 
@@ -218,33 +236,38 @@ if st.button(
 
 
         # --------------------------------------------------
-        # PROBABILITY
+        # PREDICTION PROBABILITY
         # --------------------------------------------------
 
         if hasattr(model, "predict_proba"):
 
-            probabilities = model.predict_proba(input_data)[0]
+            probability = model.predict_proba(input_data)[0]
 
-            non_diabetes_probability = probabilities[0] * 100
-            diabetes_probability = probabilities[1] * 100
+            diabetes_probability = probability[1] * 100
+            non_diabetes_probability = probability[0] * 100
+
 
             col1, col2 = st.columns(2)
 
-            with col1:
-                st.metric(
-                    "Non-Diabetes Probability",
-                    f"{non_diabetes_probability:.2f}%"
-                )
 
-            with col2:
+            with col1:
+
                 st.metric(
                     "Diabetes Probability",
                     f"{diabetes_probability:.2f}%"
                 )
 
 
+            with col2:
+
+                st.metric(
+                    "Non-Diabetes Probability",
+                    f"{non_diabetes_probability:.2f}%"
+                )
+
+
         # --------------------------------------------------
-        # DISPLAY INPUT
+        # SHOW INPUT DATA
         # --------------------------------------------------
 
         st.subheader("Input Data")
@@ -257,5 +280,6 @@ if st.button(
 
     except Exception as e:
 
-        st.error("Prediction error.")
-        st.code(str(e))
+        st.error(
+            f"Prediction error:\n\n{e}"
+        )
