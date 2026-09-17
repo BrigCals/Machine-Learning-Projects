@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import joblib
 from pathlib import Path
+from datetime import datetime
 
 # ============================================================
 # PAGE CONFIGURATION
@@ -12,6 +13,12 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+# ============================================================
+# INITIALIZE SESSION STATE FOR HISTORY
+# ============================================================
+if 'history' not in st.session_state:
+    st.session_state.history = []
 
 # ============================================================
 # CUSTOM CSS (Dark Glowing Green Theme)
@@ -80,7 +87,6 @@ st.markdown(
         font-weight: 600 !important; 
     }
     
-    /* Force dark background on the input wrapper */
     div[data-testid="stNumberInput"] div[data-baseweb="input"] { 
         background-color: #0d1214 !important; 
         border: 1px solid rgba(46, 213, 115, 0.2) !important; 
@@ -88,14 +94,12 @@ st.markdown(
         transition: all 0.3s ease;
     }
     
-    /* Focus state for the input wrapper */
     div[data-testid="stNumberInput"] div[data-baseweb="input"]:focus-within {
         border: 1px solid rgba(46, 213, 115, 0.8) !important;
         box-shadow: 0 0 15px rgba(46, 213, 115, 0.3) !important;
         background-color: #0d1214 !important;
     }
     
-    /* Force white text on the input element itself */
     div[data-testid="stNumberInput"] input { 
         background-color: transparent !important; 
         color: #ffffff !important; 
@@ -104,7 +108,6 @@ st.markdown(
         font-weight: 600 !important;
     }
 
-    /* Style the +/- buttons */
     div[data-testid="stNumberInput"] button {
         background-color: transparent !important;
         color: #2ed573 !important;
@@ -116,7 +119,7 @@ st.markdown(
         border-radius: 8px !important;
     }
 
-    /* BUTTONS - GREEN GLOWING GRADIENT */
+    /* FORM SUBMIT BUTTON (GREEN GLOWING) */
     div[data-testid="stFormSubmitButton"] button { 
         min-height: 52px !important; 
         border-radius: 14px !important; 
@@ -133,6 +136,23 @@ st.markdown(
     div[data-testid="stFormSubmitButton"] button:hover { 
         transform: translateY(-2px); 
         box-shadow: 0 0 35px rgba(46, 213, 115, 0.7) !important; 
+    }
+
+    /* STANDARD BUTTONS (CLEAR HISTORY - RED DANGER) */
+    div[data-testid="stButton"] button {
+        background-color: rgba(255, 82, 82, 0.1) !important;
+        color: #ff5252 !important;
+        border: 1px solid rgba(255, 82, 82, 0.4) !important;
+        border-radius: 14px !important;
+        font-weight: 700 !important;
+        transition: all 0.3s ease !important;
+        min-height: 45px !important;
+    }
+    div[data-testid="stButton"] button:hover {
+        background-color: rgba(255, 82, 82, 0.3) !important;
+        color: #ffffff !important;
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px rgba(255, 82, 82, 0.4) !important;
     }
 
     /* RESULT CARD */
@@ -294,7 +314,7 @@ with st.form("patient_data_form"):
 # PREDICTION & RESULTS
 # ============================================================
 if submit_button:
-    # Create DataFrame
+    # Create DataFrame for prediction
     input_data = pd.DataFrame({
         "Pregnancies": [pregnancies], "Glucose": [glucose], "BloodPressure": [bloodpressure],
         "SkinThickness": [skinthickness], "Insulin": [insulin], "BMI": [bmi],
@@ -318,7 +338,9 @@ if submit_button:
         prediction = model.predict(input_data)
         predicted_class = int(prediction[0])
         
+        # Determine Result Text for History
         if predicted_class == 1:
+            result_text = "Higher Risk"
             st.markdown(
                 """
                 <div class="result-card result-high">
@@ -330,6 +352,7 @@ if submit_button:
                 """, unsafe_allow_html=True
             )
         elif predicted_class == 0:
+            result_text = "Lower Risk"
             st.markdown(
                 """
                 <div class="result-card result-low">
@@ -341,8 +364,27 @@ if submit_button:
                 """, unsafe_allow_html=True
             )
         else:
+            result_text = f"Unexpected ({predicted_class})"
             st.warning(f"Unexpected classification value: {predicted_class}")
 
+        # ========================================================
+        # RECORD TO HISTORY
+        # ========================================================
+        record = {
+            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "Age": age,
+            "Pregnancies": pregnancies,
+            "BMI": bmi,
+            "Glucose": glucose,
+            "Insulin": insulin,
+            "Blood Pressure": bloodpressure,
+            "Skin Thickness": skinthickness,
+            "DPF": diabPedFun,
+            "Result": result_text
+        }
+        st.session_state.history.append(record)
+
+        # Confidence Bars (Optional Probability)
         if hasattr(model, "predict_proba"):
             try:
                 probabilities = model.predict_proba(input_data)[0]
@@ -387,6 +429,41 @@ if submit_button:
     except Exception as e:
         st.error("❌ An error occurred during prediction.")
         st.code(str(e))
+
+
+# ============================================================
+# HISTORY SECTION
+# ============================================================
+st.markdown("---")
+st.markdown('<h2 class="section-title"><span class="section-icon">📜</span> Assessment History</h2>', unsafe_allow_html=True)
+
+if not st.session_state.history:
+    st.info("No previous assessments recorded yet. Run a prediction to see it logged here.")
+else:
+    # Convert history list to DataFrame
+    history_df = pd.DataFrame(st.session_state.history)
+    
+    # Display History Table
+    st.dataframe(history_df, use_container_width=True, hide_index=True)
+    
+    # Actions Row (Clear & Download)
+    col_clear, col_download = st.columns([1, 1])
+    
+    with col_clear:
+        if st.button("🗑️ Clear History", use_container_width=True):
+            st.session_state.history = []
+            st.rerun()
+            
+    with col_download:
+        # Convert DataFrame to CSV for download
+        csv = history_df.to_csv(index=False).encode('utf-8')
+        st.download_button(
+            label="📥 Download History (CSV)",
+            data=csv,
+            file_name='diabetes_risk_history.csv',
+            mime='text/csv',
+            use_container_width=True
+        )
 
 # ============================================================
 # FOOTER
