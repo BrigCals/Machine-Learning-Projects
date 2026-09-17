@@ -1,11 +1,25 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import os
 
 # -----------------------------
 # Load trained model
 # -----------------------------
-model = joblib.load("diabetes-risk-prediction/diabetes_prediction_model.joblib")
+# Use a relative path to look in the same directory as the script
+# Get the absolute path to the directory containing this script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+# Construct the path to the model file
+model_path = os.path.join(script_dir, "diabetes_prediction_model.joblib")
+
+# Alternatively, if Streamlit's working directory is the folder containing the app, this also works:
+# model_path = "diabetes_prediction_model.joblib"
+
+try:
+    model = joblib.load(model_path)
+except FileNotFoundError:
+    st.error(f"Model file not found at: {model_path}. Please check your file paths.")
+    st.stop()
 
 
 # -----------------------------
