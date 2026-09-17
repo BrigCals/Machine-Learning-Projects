@@ -14,227 +14,7 @@ st.set_page_config(
 )
 
 # ============================================================
-# CUSTOM CSS (Inspired by new reference image)
-# ============================================================
-st.markdown(
-    """
-    <style>
-    /* Global Styles & Light Dashboard Theme Base */
-    :root {
-        --bg-color: #eef2f6; /* Light grayish-blue background */
-        --card-bg: #ffffff; /* Crisp white for cards */
-        --text-primary: #1c1c1e; /* Dark slate/black text */
-        --text-secondary: #8e8e93; /* Muted text */
-        --accent-blue: #a3d9e5; /* Soft pastel blue */
-        --accent-green: #d1e2b6; /* Soft pastel green */
-        --accent-orange: #f5734b; /* Vibrant orange (like the stop button) */
-        --dark-element: #2c2d30; /* Dark charcoal for primary buttons */
-    }
-
-    /* Force background color */
-    .stApp {
-        background-color: var(--bg-color);
-        color: var(--text-primary);
-    }
-    
-    /* Make the top header transparent so it blends */
-    .stApp > header {
-        background-color: transparent !important;
-    }
-
-    /* Main Dashboard Header */
-    .dashboard-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 10px 0 30px 0;
-    }
-
-    .dashboard-header h1 {
-        font-size: 2.4rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        margin: 0;
-        padding: 0;
-        line-height: 1.2;
-    }
-    
-    .dashboard-header p {
-        color: var(--text-secondary);
-        font-size: 1.1rem;
-        margin: 0;
-        font-weight: 500;
-    }
-
-    .user-pill {
-        background-color: var(--card-bg);
-        padding: 12px 24px;
-        border-radius: 50px;
-        display: inline-flex;
-        align-items: center;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    /* Section Headings */
-    .section-title {
-        color: var(--text-primary);
-        font-size: 1.4rem;
-        font-weight: 700;
-        margin-top: 10px;
-        margin-bottom: 20px;
-    }
-
-    /* Cards for Input Columns */
-    div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column;"] > div[data-testid="stVerticalBlock"] {
-        background-color: var(--card-bg);
-        padding: 24px;
-        border-radius: 28px;
-        border: none;
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04);
-        margin-bottom: 20px;
-    }
-    
-    /* Style Number Inputs */
-    .stNumberInput > div > div > input {
-        background-color: #f7f9fc !important;
-        color: var(--text-primary) !important;
-        border: 1px solid transparent !important;
-        border-radius: 16px !important;
-        font-weight: 600;
-        padding: 12px 16px !important;
-    }
-    
-    .stNumberInput > div > div > input:focus {
-        border-color: var(--accent-blue) !important;
-        box-shadow: 0 0 0 3px rgba(163, 217, 229, 0.4) !important;
-    }
-    
-    /* Input Labels */
-    .stNumberInput label {
-        color: var(--text-secondary) !important;
-        font-weight: 500 !important;
-    }
-
-    /* Submit Button Styling (Dark Pill) */
-    .stButton > button {
-        background-color: var(--dark-element);
-        color: white;
-        border: none;
-        border-radius: 50px;
-        padding: 16px 32px;
-        font-size: 1.1rem;
-        font-weight: 700;
-        transition: all 0.3s ease;
-        box-shadow: 0 10px 25px rgba(44, 45, 48, 0.2);
-        width: 100%;
-        margin-top: 20px;
-    }
-
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 30px rgba(44, 45, 48, 0.3);
-        background-color: #1a1b1d;
-    }
-
-    /* Result Containers (Card Style) */
-    .result-high {
-        background-color: var(--card-bg);
-        border: 2px solid var(--accent-orange);
-        padding: 30px;
-        border-radius: 28px;
-        margin: 20px 0;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(245, 115, 75, 0.1);
-    }
-    
-    .result-low {
-        background-color: var(--card-bg);
-        border: 2px solid var(--accent-green);
-        padding: 30px;
-        border-radius: 28px;
-        margin: 20px 0;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(209, 226, 182, 0.2);
-    }
-
-    /* Circular Icons */
-    .icon-circle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        margin-right: 12px;
-        font-size: 1.3rem;
-    }
-    .icon-blue { background-color: var(--accent-blue); color: #1c1c1e; }
-    .icon-orange { background-color: var(--accent-orange); color: white; }
-    .icon-green { background-color: var(--accent-green); color: #1c1c1e; }
-
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] {
-        background-color: #f7f9fc;
-        border-right: 1px solid rgba(0,0,0,0.05);
-    }
-    
-    /* Metrics Styling */
-    div[data-testid="stMetricValue"] {
-        font-size: 2.5rem !important;
-        font-weight: 800 !important;
-        color: var(--text-primary) !important;
-    }
-    div[data-testid="stMetricLabel"] {
-        color: var(--text-secondary) !important;
-        font-weight: 500 !important;
-    }
-
-    /* Footer */
-    .footer-container {
-        text-align: center;
-        padding: 30px;
-        margin-top: 50px;
-        border-top: 1px solid rgba(0, 0, 0, 0.05);
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-    }
-    
-    /* DataFrame Styling */
-    [data-testid="stDataFrame"] {
-        border-radius: 16px;
-        overflow: hidden;
-        border: 1px solid rgba(0,0,0,0.05);
-        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
-# ============================================================
-# MODEL PATH
-# ============================================================
-APP_DIR = Path(__file__).resolve().parent
-MODEL_PATH = APP_DIR / "diabetes_prediction_model.joblib"
-
-# ============================================================
-# LOAD TRAINED MODEL
-# ============================================================
-@st.cache_resource
-def load_model():
-    """Load the trained machine learning model."""
-    if not MODEL_PATH.exists():
-        return None, f"Model file not found at: {MODEL_PATH}"
-    try:
-        model = joblib.load(MODEL_PATH)
-        return model, None
-    except Exception as e:
-        return None, f"Error loading model: {type(e).__name__} - {str(e)}"
-
-# ============================================================
-# CUSTOM CSS (Dark Glowing Green Theme)
+# CUSTOM CSS (Dark Glowing Green Theme - Fixed Inputs)
 # ============================================================
 st.markdown(
     """
@@ -293,25 +73,47 @@ st.markdown(
     .section-title { display: flex; align-items: center; gap: 8px; color: #f4f5ff; font-size: 18px; font-weight: 800; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;}
     .section-icon { color: #2ed573; font-size: 20px; text-shadow: 0 0 10px rgba(46, 213, 115, 0.5); }
 
-    /* NUMBER INPUTS - GLOWING EFFECT */
-    div[data-testid="stNumberInput"] label p { color: #a7adbf !important; font-size: 13px !important; font-weight: 600 !important; }
+    /* NUMBER INPUTS - FIXED VISIBILITY */
+    div[data-testid="stNumberInput"] label p { 
+        color: #a7adbf !important; 
+        font-size: 13px !important; 
+        font-weight: 600 !important; 
+    }
+    
+    /* Force dark background on the input wrapper */
     div[data-testid="stNumberInput"] div[data-baseweb="input"] { 
-        background: rgba(10, 15, 20, 0.6) !important; 
+        background-color: #0d1214 !important; 
         border: 1px solid rgba(46, 213, 115, 0.2) !important; 
         border-radius: 12px !important; 
         transition: all 0.3s ease;
     }
+    
+    /* Focus state for the input wrapper */
     div[data-testid="stNumberInput"] div[data-baseweb="input"]:focus-within {
         border: 1px solid rgba(46, 213, 115, 0.8) !important;
         box-shadow: 0 0 15px rgba(46, 213, 115, 0.3) !important;
-        background: rgba(15, 22, 30, 0.8) !important;
+        background-color: #0d1214 !important;
     }
+    
+    /* Force white text on the input element itself */
     div[data-testid="stNumberInput"] input { 
-        background: transparent !important; 
+        background-color: transparent !important; 
         color: #ffffff !important; 
         -webkit-text-fill-color: #ffffff !important; 
         font-size: 15px !important;
         font-weight: 600 !important;
+    }
+
+    /* Style the +/- buttons */
+    div[data-testid="stNumberInput"] button {
+        background-color: transparent !important;
+        color: #2ed573 !important;
+        border: none !important;
+    }
+    div[data-testid="stNumberInput"] button:hover {
+        color: #ffffff !important;
+        background-color: rgba(46, 213, 115, 0.2) !important;
+        border-radius: 8px !important;
     }
 
     /* BUTTONS - GREEN GLOWING GRADIENT */
@@ -367,6 +169,26 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# ============================================================
+# MODEL PATH
+# ============================================================
+APP_DIR = Path(__file__).resolve().parent
+MODEL_PATH = APP_DIR / "diabetes_prediction_model.joblib"
+
+# ============================================================
+# LOAD TRAINED MODEL
+# ============================================================
+@st.cache_resource
+def load_model():
+    """Load the trained machine learning model."""
+    if not MODEL_PATH.exists():
+        return None, f"Model file not found at: {MODEL_PATH}"
+    try:
+        model = joblib.load(MODEL_PATH)
+        return model, None
+    except Exception as e:
+        return None, f"Error loading model: {type(e).__name__} - {str(e)}"
 
 # ============================================================
 # SIDEBAR
