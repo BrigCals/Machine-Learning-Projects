@@ -19,7 +19,7 @@ st.set_page_config(
 @st.cache_resource  # Cache the model load so it doesn't reload every rerun
 def load_model():
     try:
-        return joblib.load("diabetes_prediction_model.joblib")
+        return joblib.load("diabetes-risk-prediction/diabetes_prediction_model.joblib")
     except FileNotFoundError:
         return None
 
