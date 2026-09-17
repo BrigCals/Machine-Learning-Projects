@@ -80,7 +80,7 @@ st.markdown(
     .section-title { display: flex; align-items: center; gap: 8px; color: #f4f5ff; font-size: 18px; font-weight: 800; margin-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 10px;}
     .section-icon { color: #2ed573; font-size: 20px; text-shadow: 0 0 10px rgba(46, 213, 115, 0.5); }
 
-    /* NUMBER INPUTS - FIXED VISIBILITY */
+    /* NUMBER INPUTS - BASE STYLING */
     div[data-testid="stNumberInput"] label p { 
         color: #a7adbf !important; 
         font-size: 13px !important; 
@@ -108,15 +108,32 @@ st.markdown(
         font-weight: 600 !important;
     }
 
-    div[data-testid="stNumberInput"] button {
-        background-color: transparent !important;
+    /* FIX FOR +/- BUTTONS: SPECIFIC TARGETING AND HIT AREA */
+    div[data-testid="stNumberInput"] button[data-testid="stNumberInputStepUp"],
+    div[data-testid="stNumberInput"] button[data-testid="stNumberInputStepDown"] {
+        background-color: rgba(46, 213, 115, 0.1) !important;
         color: #2ed573 !important;
-        border: none !important;
+        border: 1px solid rgba(46, 213, 115, 0.2) !important;
+        border-radius: 6px !important;
+        cursor: pointer !important;
+        min-width: 32px !important;
+        min-height: 32px !important;
+        padding: 0 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transition: all 0.2s ease !important;
+        pointer-events: auto !important;
+        z-index: 10 !important;
+        margin: 0 4px !important;
     }
-    div[data-testid="stNumberInput"] button:hover {
+
+    div[data-testid="stNumberInput"] button[data-testid="stNumberInputStepUp"]:hover,
+    div[data-testid="stNumberInput"] button[data-testid="stNumberInputStepDown"]:hover {
+        background-color: rgba(46, 213, 115, 0.3) !important;
         color: #ffffff !important;
-        background-color: rgba(46, 213, 115, 0.2) !important;
-        border-radius: 8px !important;
+        border-color: #2ed573 !important;
+        box-shadow: 0 0 10px rgba(46, 213, 115, 0.4) !important;
     }
 
     /* FORM SUBMIT BUTTON (GREEN GLOWING) */
