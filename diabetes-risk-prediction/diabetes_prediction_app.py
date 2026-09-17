@@ -6,160 +6,199 @@ from pathlib import Path
 # ============================================================
 # PAGE CONFIGURATION
 # ============================================================
+
 st.set_page_config(
-    page_title="Diabetes Risk Predictor",
-    page_icon="🧬",
+    page_title="Health Dashboard | Diabetes Risk",
+    page_icon="🧑‍⚕️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # ============================================================
-# CUSTOM CSS (Inspired by reference image)
+# MODEL PATH
 # ============================================================
+
+# Get the folder where this Python file is located
+APP_DIR = Path(__file__).resolve().parent
+
+# The model should be in the SAME folder as this app
+MODEL_PATH = APP_DIR / "diabetes_prediction_model.joblib"
+
+
+# ============================================================
+# LOAD TRAINED MODEL
+# ============================================================
+
+@st.cache_resource
+def load_model():
+    """
+    Load the trained machine learning model.
+    """
+    if not MODEL_PATH.exists():
+        return None, (
+            f"Model file was not found.\n\n"
+            f"Expected location:\n{MODEL_PATH}"
+        )
+    try:
+        model = joblib.load(MODEL_PATH)
+        return model, None
+    except Exception as e:
+        return None, (
+            f"Could not load the trained model.\n\n"
+            f"Error type: {type(e).__name__}\n"
+            f"Error message: {str(e)}"
+        )
+
+# ============================================================
+# CUSTOM CSS (Inspired by the clean, light mobile UI reference)
+# ============================================================
+
 st.markdown(
     """
     <style>
-    /* Global Styles & Dark Theme Base */
-    :root {
-        --bg-color: #0f0c29; /* Dark purple/navy background */
-        --panel-bg: #1e1b4b; /* Slightly lighter panel background */
-        --text-primary: #f8fafc;
-        --text-secondary: #94a3b8;
-        --neon-green: #34d399; /* From the image's green gradient */
-        --neon-blue: #38bdf8;  /* From the image's blue gradient */
-        --neon-yellow: #fde047; /* From the image's yellow gradient */
-        --neon-pink: #f472b6;   /* From the background pink */
-    }
-
+    /* Light Theme Backgrounds */
     .stApp {
-        background: linear-gradient(to bottom right, var(--bg-color), #302b63, #24243e);
-        color: var(--text-primary);
+        background-color: #F0F4F8; /* Soft blue-gray background */
+        color: #1E293B; /* Dark slate text for high legibility */
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    
+    /* Sidebar Styling */
+    [data-testid="stSidebar"] {
+        background-color: #FFFFFF;
+        border-right: 1px solid #E2E8F0;
+    }
+    
+    [data-testid="stSidebar"] * {
+        color: #334155;
+    }
+    
+    /* Headers and Text */
+    h1, h2, h3, h4 {
+        color: #0F172A;
+        font-weight: 700 !important;
+    }
+    
+    p, span {
+        color: #475569;
     }
 
-    /* Gradient Text Utility */
-    .gradient-text {
-        background: linear-gradient(90deg, var(--neon-yellow), var(--neon-green));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        font-weight: 800;
+    /* Card/Form Container Styling */
+    [data-testid="stForm"] {
+        background-color: #FFFFFF;
+        border-radius: 28px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        border: none;
+        margin-bottom: 24px;
     }
 
-    /* Main Title Area */
-    .main-title-container {
-        text-align: center;
-        padding: 40px 20px;
-        background: rgba(30, 27, 75, 0.6);
-        border-radius: 20px;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        margin-bottom: 40px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    /* Form Elements and Inputs */
+    div[data-baseweb="input"] > div, div[data-baseweb="number-input"] > div {
+        background-color: #F8FAFC !important;
+        border: 1px solid #E2E8F0 !important;
+        border-radius: 16px !important;
+        color: #0F172A !important;
+        transition: all 0.2s ease;
     }
-
-    .main-title-container h1 {
-        font-size: 3rem;
-        margin-bottom: 15px;
+    
+    div[data-baseweb="input"] > div:focus-within, div[data-baseweb="number-input"] > div:focus-within {
+        border-color: #93C5FD !important;
+        background-color: #FFFFFF !important;
+        box-shadow: 0 0 0 2px rgba(147, 197, 253, 0.2) !important;
     }
-
-    .main-title-container p {
-        font-size: 1.2rem;
-        color: var(--text-secondary);
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    /* Section Headings */
-    .section-title {
-        color: var(--neon-blue);
-        font-size: 1.8rem;
+    
+    /* Number input text color fix */
+    input[type="number"] {
+        color: #0F172A !important;
         font-weight: 600;
-        margin-top: 30px;
-        margin-bottom: 20px;
-        border-bottom: 2px solid rgba(56, 189, 248, 0.3);
-        padding-bottom: 10px;
-        display: inline-block;
     }
 
-    /* Cards for Input Columns */
-    div[data-testid="stVerticalBlock"] > div[style*="flex-direction: column;"] > div[data-testid="stVerticalBlock"] {
-        background-color: var(--panel-bg);
-        padding: 20px;
-        border-radius: 15px;
-        border: 1px solid rgba(255, 255, 255, 0.05);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-    
-    /* Style Number Inputs */
-    .stNumberInput > div > div > input {
-        background-color: rgba(0, 0, 0, 0.2) !important;
-        color: white !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        border-radius: 8px !important;
-    }
-    
-    .stNumberInput > div > div > input:focus {
-        border-color: var(--neon-green) !important;
-        box-shadow: 0 0 0 1px var(--neon-green) !important;
-    }
-
-    /* Submit Button Styling (Gradient) */
-    .stButton > button {
-        background: linear-gradient(90deg, #10b981, #3b82f6);
-        color: white;
+    /* Buttons */
+    div.stButton > button:first-child {
+        background-color: #1E293B; /* Dark, pill-shaped button like the nav bar in reference */
+        color: #FFFFFF;
         border: none;
         border-radius: 30px;
-        padding: 15px 30px;
-        font-size: 1.2rem;
-        font-weight: bold;
+        padding: 12px 32px;
+        font-size: 16px;
+        font-weight: 600;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
-        width: 100%;
-        margin-top: 20px;
+        box-shadow: 0 4px 12px rgba(30, 41, 59, 0.2);
     }
-
-    .stButton > button:hover {
+    
+    div.stButton > button:first-child:hover {
+        background-color: #0F172A;
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
-        background: linear-gradient(90deg, #059669, #2563eb);
+        box-shadow: 0 6px 16px rgba(30, 41, 59, 0.3);
+        color: #FFFFFF;
     }
 
-    /* Result Containers */
-    .result-high {
-        background: linear-gradient(135deg, rgba(244, 63, 94, 0.1), rgba(159, 18, 57, 0.4));
-        border-left: 5px solid #f43f5e;
+    /* Custom Dashboard Header */
+    .dash-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        background-color: #FFFFFF;
         padding: 20px;
-        border-radius: 10px;
-        margin: 20px 0;
+        border-radius: 28px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
     }
     
-    .result-low {
-        background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 95, 70, 0.4));
-        border-left: 5px solid #10b981;
-        padding: 20px;
-        border-radius: 10px;
-        margin: 20px 0;
+    .dash-avatar {
+        width: 56px;
+        height: 56px;
+        background-color: #E0F2FE;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        margin-right: 16px;
     }
 
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] {
-        background-color: rgba(15, 12, 41, 0.95);
-        border-right: 1px solid rgba(255, 255, 255, 0.1);
-    }
-    
-    /* Metrics Styling */
-    div[data-testid="stMetricValue"] {
-        font-size: 2.5rem !important;
-        font-weight: 800 !important;
-    }
-
-    /* Footer */
-    .footer-container {
-        text-align: center;
+    /* Result Cards */
+    .result-card {
+        background-color: #FFFFFF;
+        border-radius: 28px;
         padding: 30px;
-        margin-top: 50px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
-        color: var(--text-secondary);
-        font-size: 0.9rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        margin-bottom: 24px;
+        text-align: center;
+    }
+    
+    .status-circle-danger {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background-color: #FFF1F2;
+        border: 4px solid #F43F5E; /* Matches the vibrant orange/red from reference */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px auto;
+    }
+    
+    .status-circle-safe {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        background-color: #F0FDF4;
+        border: 4px solid #4ADE80; /* Muted green */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px auto;
+    }
+
+    .footer {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #94A3B8;
+        padding: 20px;
+        margin-top: 40px;
     }
     </style>
     """,
@@ -167,33 +206,19 @@ st.markdown(
 )
 
 # ============================================================
-# MODEL PATH
-# ============================================================
-APP_DIR = Path(__file__).resolve().parent
-MODEL_PATH = APP_DIR / "diabetes_prediction_model.joblib"
-
-# ============================================================
-# LOAD TRAINED MODEL
-# ============================================================
-@st.cache_resource
-def load_model():
-    """Load the trained machine learning model."""
-    if not MODEL_PATH.exists():
-        return None, f"Model file not found at: {MODEL_PATH}"
-    try:
-        model = joblib.load(MODEL_PATH)
-        return model, None
-    except Exception as e:
-        return None, f"Error loading model: {type(e).__name__} - {str(e)}"
-
-# ============================================================
 # HEADER
 # ============================================================
+
 st.markdown(
     """
-    <div class="main-title-container">
-        <h1><span class="gradient-text">Diabetes Risk</span> Assessment</h1>
-        <p>Advanced machine-learning analysis based on key clinical measurements.</p>
+    <div class="dash-header">
+        <div class="dash-avatar">
+            🩺
+        </div>
+        <div>
+            <h1 style="margin: 0; font-size: 24px;">Clinical Dashboard</h1>
+            <p style="margin: 0; color: #64748B; font-size: 14px;">Diabetes Risk Assessment Tool</p>
+        </div>
     </div>
     """,
     unsafe_allow_html=True
@@ -202,97 +227,98 @@ st.markdown(
 # ============================================================
 # SIDEBAR
 # ============================================================
+
 with st.sidebar:
-    st.markdown('<h2 style="color: #38bdf8;">🧬 About the Tool</h2>', unsafe_allow_html=True)
-    st.write(
-        "This application utilizes a predictive model to assess the likelihood of diabetes risk based on user-provided health metrics."
+    # Use HTML to make sidebar titles look cleaner
+    st.markdown("<h3 style='margin-bottom: 5px;'>ℹ️ Tool Overview</h3>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <p style="font-size: 0.9rem; margin-bottom: 20px;">
+        This application classifies a patient's diabetes risk using a pre-trained machine learning model based on clinical metrics.
+        </p>
+        """,
+        unsafe_allow_html=True
     )
-    st.divider()
     
-    st.markdown('<h3 style="color: #fde047;">Input Parameters</h3>', unsafe_allow_html=True)
+    st.markdown("<h3 style='margin-bottom: 5px;'>📊 Required Metrics</h3>", unsafe_allow_html=True)
     
-    # Styled list in sidebar
-    st.markdown("""
-    <ul style="color: #94a3b8; line-height: 1.8;">
-        <li><strong style="color:white;">Pregnancies:</strong> Number of times pregnant</li>
-        <li><strong style="color:white;">Glucose:</strong> Plasma glucose concentration</li>
-        <li><strong style="color:white;">Blood Pressure:</strong> Diastolic pressure (mmHg)</li>
-        <li><strong style="color:white;">Skin Thickness:</strong> Triceps skinfold (mm)</li>
-        <li><strong style="color:white;">Insulin:</strong> 2-Hour serum insulin (mu U/ml)</li>
-        <li><strong style="color:white;">BMI:</strong> Body mass index</li>
-        <li><strong style="color:white;">DPF:</strong> Diabetes pedigree function</li>
-        <li><strong style="color:white;">Age:</strong> Years</li>
-    </ul>
-    """, unsafe_allow_html=True)
+    # Styled list mimicking the rounded UI
+    metrics = ["Pregnancies", "Glucose Level", "Blood Pressure", "Skin Thickness", "Insulin", "BMI", "Pedigree Function", "Age"]
+    for m in metrics:
+        st.markdown(
+            f"""
+            <div style="background-color: #F8FAFC; padding: 10px 15px; border-radius: 12px; margin-bottom: 8px; border: 1px solid #E2E8F0; font-size: 0.9rem; font-weight: 500;">
+                {m}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
     
-    st.divider()
-    st.info("⚠️ For educational and demonstration purposes only. Not a medical diagnosis.")
+    st.markdown("<br><hr style='border-color: #E2E8F0;'>", unsafe_allow_html=True)
+    st.caption("For educational and demonstration purposes only.")
 
 # ============================================================
-# PATIENT INPUT
+# PATIENT INPUT FORM
 # ============================================================
-st.markdown('<div class="section-title">📋 Enter Health Metrics</div>', unsafe_allow_html=True)
 
+# The st.form will automatically pick up the CSS styling to look like a large white card
 with st.form("patient_data_form"):
-    col1, col2, col3 = st.columns(3, gap="large")
+    st.markdown("<h3 style='margin-top: 0;'>Patient Metrics</h3>", unsafe_allow_html=True)
+    st.markdown("<p style='font-size: 0.9rem; margin-bottom: 20px;'>Enter the data below to run the assessment.</p>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3)
 
-    # COLUMN 1: Personal Info
+    # COLUMN 1: Personal
     with col1:
-        st.markdown('<h3 style="color: #34d399; margin-bottom: 20px;">👤 Profile</h3>', unsafe_allow_html=True)
+        st.markdown("<div style='display:flex; align-items:center; gap:8px;'><div style='background:#E0F2FE; width:24px; height:24px; border-radius:50%; display:flex; justify-content:center; align-items:center;'>👤</div> <strong>Personal</strong></div>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
         age = st.number_input("Age (Years)", min_value=1, max_value=120, value=30, step=1)
         pregnancies = st.number_input("Pregnancies", min_value=0, max_value=20, value=0, step=1)
         bmi = st.number_input("BMI", min_value=0.0, max_value=70.0, value=25.0, format="%.1f")
 
     # COLUMN 2: Blood Tests
     with col2:
-        st.markdown('<h3 style="color: #f472b6; margin-bottom: 20px;">🩸 Vitals</h3>', unsafe_allow_html=True)
+        st.markdown("<div style='display:flex; align-items:center; gap:8px;'><div style='background:#FEE2E2; width:24px; height:24px; border-radius:50%; display:flex; justify-content:center; align-items:center;'>🩸</div> <strong>Blood Tests</strong></div>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
         glucose = st.number_input("Glucose (mg/dL)", min_value=0.0, max_value=300.0, value=120.0, format="%.1f")
         insulin = st.number_input("Insulin (μU/ml)", min_value=0.0, max_value=900.0, value=80.0, format="%.1f")
-        bloodpressure = st.number_input("Blood Pressure (mmHg)", min_value=0.0, max_value=200.0, value=70.0, format="%.1f")
 
     # COLUMN 3: Other Metrics
     with col3:
-        st.markdown('<h3 style="color: #fde047; margin-bottom: 20px;">📊 Specifics</h3>', unsafe_allow_html=True)
+        st.markdown("<div style='display:flex; align-items:center; gap:8px;'><div style='background:#DCFCE7; width:24px; height:24px; border-radius:50%; display:flex; justify-content:center; align-items:center;'>🩺</div> <strong>Vitals & Gen</strong></div>", unsafe_allow_html=True)
+        st.markdown("<br>", unsafe_allow_html=True)
+        bloodpressure = st.number_input("Blood Pressure (mmHg)", min_value=0.0, max_value=200.0, value=70.0, format="%.1f")
         skinthickness = st.number_input("Skin Thickness (mm)", min_value=0.0, max_value=100.0, value=20.0, format="%.1f")
-        diabPedFun = st.number_input("Pedigree Function (DPF)", min_value=0.0, max_value=3.0, value=0.5, format="%.3f")
+        diabPedFun = st.number_input("Pedigree Function", min_value=0.0, max_value=3.0, value=0.5, format="%.3f")
 
-    # SUBMIT BUTTON
     st.markdown("<br>", unsafe_allow_html=True)
-    submit_button = st.form_submit_button(label="🚀 Analyze Risk Profile", use_container_width=True)
+    submit_button = st.form_submit_button(label="Run Analysis", use_container_width=True)
+
 
 # ============================================================
 # PREDICTION & RESULTS
 # ============================================================
+
 if submit_button:
-    # Create DataFrame
+    # Prepare Input Data
     input_data = pd.DataFrame({
-        "Pregnancies": [pregnancies], "Glucose": [glucose], "BloodPressure": [bloodpressure],
-        "SkinThickness": [skinthickness], "Insulin": [insulin], "BMI": [bmi],
-        "DiabetesPedigreeFunction": [diabPedFun], "Age": [age]
+        "Pregnancies": [pregnancies],
+        "Glucose": [glucose],
+        "BloodPressure": [bloodpressure],
+        "SkinThickness": [skinthickness],
+        "Insulin": [insulin],
+        "BMI": [bmi],
+        "DiabetesPedigreeFunction": [diabPedFun],
+        "Age": [age]
     })
 
-    st.markdown('<div class="section-title">📊 Input Summary</div>', unsafe_allow_html=True)
-    
-    # Styled dataframe container
-    st.markdown("""
-        <style>
-        [data-testid="stDataFrame"] {
-            border-radius: 10px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.1);
-        }
-        </style>
-    """, unsafe_allow_html=True)
-    st.dataframe(input_data, use_container_width=True, hide_index=True)
-
     # Load Model
-    with st.spinner("Analyzing data with AI model..."):
+    with st.spinner("Analyzing patient metrics..."):
         model, model_error = load_model()
 
     if model is None:
-        st.error("⚠️ Failed to load the predictive model.")
+        st.error("⚠️ The trained model could not be loaded.")
         st.code(model_error, language="text")
-        st.info("Ensure 'diabetes_prediction_model.joblib' is in the app directory.")
         st.stop()
 
     # Make Prediction
@@ -300,62 +326,98 @@ if submit_button:
         prediction = model.predict(input_data)
         predicted_class = int(prediction[0])
         
-        st.markdown('<div class="section-title">🎯 Assessment Results</div>', unsafe_allow_html=True)
-
+        # Determine styling based on class
         if predicted_class == 1:
-            st.markdown(
-                """
-                <div class="result-high">
-                    <h3 style="color: #f43f5e; margin: 0 0 10px 0;">🚨 Higher-Risk Classification Detected</h3>
-                    <p style="margin: 0; color: #e2e8f0;">The model indicates patterns consistent with higher diabetes risk based on the provided metrics. Please consult a healthcare professional for a formal evaluation.</p>
-                </div>
-                """, unsafe_allow_html=True
-            )
-        elif predicted_class == 0:
-            st.markdown(
-                """
-                <div class="result-low">
-                    <h3 style="color: #10b981; margin: 0 0 10px 0;">✅ Lower-Risk Classification</h3>
-                    <p style="margin: 0; color: #e2e8f0;">The model indicates lower risk based on these specific metrics. Continue maintaining healthy habits. Remember, this does not rule out underlying conditions.</p>
-                </div>
-                """, unsafe_allow_html=True
-            )
+            status_class = "status-circle-danger"
+            status_text_color = "#F43F5E"
+            status_icon = "⚠️"
+            status_title = "High Risk"
+            status_desc = "The model classifies these metrics as elevated risk for diabetes. Please consult a healthcare provider for clinical diagnosis."
         else:
-            st.warning(f"Unexpected classification value: {predicted_class}")
-
-        # Probabilities (If model supports it)
-        if hasattr(model, "predict_proba"):
-            try:
+            status_class = "status-circle-safe"
+            status_text_color = "#22C55E"
+            status_icon = "✓"
+            status_title = "Low Risk"
+            status_desc = "The model classifies these metrics as lower risk. Continue maintaining a healthy lifestyle. This does not rule out medical conditions."
+            
+        
+        st.markdown('<div class="result-card">', unsafe_allow_html=True)
+        
+        # Top section of result card
+        st.markdown("<h3 style='margin-bottom: 30px;'>Assessment Complete</h3>", unsafe_allow_html=True)
+        
+        res_col1, res_col2 = st.columns([1, 1.5])
+        
+        with res_col1:
+            # Big Circular Indicator matching the dashboard style
+            st.markdown(
+                f"""
+                <div class="{status_class}">
+                    <span style="font-size: 40px;">{status_icon}</span>
+                    <span style="color: {status_text_color}; font-weight: bold; font-size: 18px; margin-top: 5px;">{status_title}</span>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            
+        with res_col2:
+            st.markdown(
+                f"""
+                <div style="text-align: left; padding-top: 10px;">
+                    <p style="font-size: 16px; line-height: 1.6;">{status_desc}</p>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+            
+            # Probabilities Visualization
+            if hasattr(model, "predict_proba"):
                 probabilities = model.predict_proba(input_data)[0]
-                
-                st.markdown('<h4 style="color: #94a3b8; margin-top: 30px;">Model Confidence Breakdown</h4>', unsafe_allow_html=True)
-                
                 if len(probabilities) >= 2:
                     p_low = probabilities[0] * 100
                     p_high = probabilities[1] * 100
                     
-                    # Custom metric layout
-                    m_col1, m_col2 = st.columns(2)
-                    with m_col1:
-                        st.metric(label="Probability of Lower Risk (Class 0)", value=f"{p_low:.1f}%")
-                    with m_col2:
-                        st.metric(label="Probability of Higher Risk (Class 1)", value=f"{p_high:.1f}%")
+                    st.markdown("<div style='text-align: left; margin-top: 20px;'><strong style='color: #0F172A;'>Confidence Score</strong></div>", unsafe_allow_html=True)
+                    
+                    # Pill-shaped light theme progress bars
+                    st.markdown(
+                        f"""
+                        <div style="margin-top: 10px; text-align: left;">
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px;">
+                                <span>Low Risk</span>
+                                <strong>{p_low:.1f}%</strong>
+                            </div>
+                            <div style="width: 100%; background-color: #F1F5F9; border-radius: 10px; height: 12px; overflow: hidden;">
+                                <div style="width: {p_low}%; height: 100%; background-color: #4ADE80; border-radius: 10px;"></div>
+                            </div>
+                        </div>
                         
-            except Exception:
-                pass # Fail silently for probabilities
+                        <div style="margin-top: 15px; text-align: left;">
+                            <div style="display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 5px;">
+                                <span>High Risk</span>
+                                <strong>{p_high:.1f}%</strong>
+                            </div>
+                            <div style="width: 100%; background-color: #F1F5F9; border-radius: 10px; height: 12px; overflow: hidden;">
+                                <div style="width: {p_high}%; height: 100%; background-color: #F43F5E; border-radius: 10px;"></div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True
+                    )
+        
+        st.markdown('</div>', unsafe_allow_html=True) # End Results Card
 
     except Exception as e:
         st.error("❌ An error occurred during prediction.")
-        st.code(str(e))
+        st.code(f"{type(e).__name__}: {str(e)}", language="text")
 
 # ============================================================
-# FOOTER
+# FOOTER / DISCLAIMER
 # ============================================================
+
 st.markdown(
     """
-    <div class="footer-container">
-        <p><strong style="color: var(--neon-pink);">Disclaimer:</strong> This application is intended for educational and demonstration purposes only. It is not a substitute for professional medical advice, diagnosis, or treatment.</p>
-        <p style="opacity: 0.7;">The machine learning output should not be interpreted as a definitive medical diagnosis.</p>
+    <div class="footer">
+        <p><strong>Disclaimer:</strong> This application is a demonstration of machine learning capabilities and is not a substitute for professional medical advice, diagnosis, or treatment.</p>
     </div>
     """,
     unsafe_allow_html=True
